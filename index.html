@@ -997,26 +997,13 @@
       color: #adb5bd;
     }
     
-    /* Minimal spacing for tiny.site banner - reduced to prevent double banner appearance */
+    /* Add bottom spacing for tiny.host banner */
     body {
-      padding-bottom: 40px !important;
+      padding-bottom: 80px !important;
     }
     
     .container-fluid {
-      margin-bottom: 20px;
-    }
-    
-    /* Hide potential duplicate tiny.site banners or ads */
-    [class*="banner"]:not(:first-child),
-    [id*="banner"]:not(:first-child),
-    [class*="ad"]:not(:first-child),
-    iframe[src*="ads"]:not(:first-child) {
-      display: none !important;
-    }
-    
-    /* Ensure only one banner shows at the bottom */
-    body > div[style*="position: fixed"]:not(:first-of-type) {
-      display: none !important;
+      margin-bottom: 60px;
     }
   </style>
 </head>
