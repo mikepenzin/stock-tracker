@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Stock Tracker - Powered by Yahoo Finance</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,22 +21,76 @@
       background: #f8f9fa;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      padding: 8px 14px;
+      padding: 12px 14px;
       margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
     }
+    
+    .alert-list-card:hover {
+      background: #e9ecef;
+      border-color: #dee2e6;
+    }
+    
     .alert-list-card .delete-alert {
-      color: #ff4d4f;
+      color: #6c757d;
       cursor: pointer;
       font-size: 1.2em;
-      margin-left: 12px;
       transition: color 0.15s;
     }
+    
     .alert-list-card .delete-alert:hover {
-      color: #d32f2f;
+      color: #dc3545;
+    }
+    
+    .alert-notes {
+      font-style: italic;
+      border-left: 3px solid #dee2e6;
+      padding-left: 8px;
+      margin-top: 4px;
+      font-size: 0.9em;
+    }
+    
+    /* Dark mode adjustments for alert cards */
+    body.dark-mode .alert-list-card {
+      background: #2b2b2b;
+      border-color: #444;
+      color: #e9ecef;
+    }
+    
+    body.dark-mode .alert-list-card:hover {
+      background: #333;
+      border-color: #555;
+    }
+    
+    body.dark-mode .alert-notes {
+      border-left-color: #555;
+      color: #adb5bd;
+    }
+    
+    /* Complex alert styling */
+    .condition-row {
+      background: #f8f9fa;
+      transition: all 0.2s ease;
+    }
+    
+    .condition-row:hover {
+      background: #e9ecef;
+    }
+    
+    body.dark-mode .condition-row {
+      background: #2b2b2b;
+      border-color: #444 !important;
+    }
+    
+    body.dark-mode .condition-row:hover {
+      background: #333;
+    }
+    
+    .remove-condition:hover {
+      background-color: #dc3545 !important;
+      border-color: #dc3545 !important;
+      color: white !important;
     }
     /* Alert indicator bell icon styles */
     .alert-indicator {
@@ -1005,9 +1062,65 @@
     .container-fluid {
       margin-bottom: 60px;
     }
+    
+    /* Toast container and styling */
+    .toast-container {
+      z-index: 9999 !important;
+    }
+    
+    .toast {
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .toast .toast-body {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    /* Dark mode toast adjustments */
+    body.dark-mode .toast {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Toast animations */
+    .toast.showing {
+      animation: toastSlideIn 0.3s ease-out;
+    }
+    
+    .toast.hide {
+      animation: toastSlideOut 0.3s ease-in;
+    }
+    
+    @keyframes toastSlideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes toastSlideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+  
   <div class="container-fluid">
     <h1><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Stock Tracker <small class="text-muted" style="font-size:0.4em;">Powered by Yahoo Finance</small></h1>
     <form class="add-stock" id="addStockForm">
@@ -1132,6 +1245,35 @@
               <input type="email" id="userEmail" class="form-control" placeholder="your@email.com (optional)" />
             </div>
             
+            <!-- Browser Notifications -->
+            <div class="mb-3">
+              <label class="form-label">Browser Notifications</label>
+              <div class="row">
+                <div class="col-12">
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="browserNotificationsSwitch" checked>
+                    <label class="form-check-label" for="browserNotificationsSwitch">
+                      Enable Browser Notifications
+                      <small class="text-muted d-block">Get alerts even when in other tabs or applications</small>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div id="notificationActions" class="ms-3">
+                <div class="d-grid gap-1">
+                  <button type="button" class="btn btn-outline-primary btn-sm" id="testNotificationBtn">
+                    <i class="bi bi-bell me-1"></i> Test Notification
+                  </button>
+                  <button type="button" class="btn btn-outline-info btn-sm" id="requestNotificationPermissionBtn" style="display: none;">
+                    <i class="bi bi-shield-check me-1"></i> Request Permission
+                  </button>
+                  <small class="text-muted mt-1" id="notificationStatus">
+                    Status: Checking permissions...
+                  </small>
+                </div>
+              </div>
+            </div>
+            
             <!-- Quick Actions -->
             <div class="mb-3">
               <label class="form-label">Quick Actions:</label>
@@ -1163,6 +1305,69 @@
       </div>
     </div>
   <script>
+    // Version check and auto-reload system
+    const APP_VERSION = "2.1.0"; // Update this when you make changes
+    
+    // Check if user has old version and force reload
+    function checkVersion() {
+      const lastVersion = localStorage.getItem('stockTracker_version');
+      if (lastVersion && lastVersion !== APP_VERSION) {
+        console.log(`Version updated from ${lastVersion} to ${APP_VERSION}, clearing cache and reloading...`);
+        // Clear all localStorage data to ensure fresh start
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('stock') || key.startsWith('historical_') || key.startsWith('watchlist')) {
+            localStorage.removeItem(key);
+          }
+        });
+        // Force reload with cache busting
+        window.location.reload(true);
+      }
+      localStorage.setItem('stockTracker_version', APP_VERSION);
+    }
+    
+    // Check version immediately
+    checkVersion();
+    
+    // --- Alert Debouncing System ---
+    let triggeredAlerts = new Map(); // Track recently triggered alerts
+    const ALERT_COOLDOWN = 300000; // 5 minutes cooldown between same alerts
+    
+    function getAlertKey(symbol, alert) {
+      if (alert.isComplex && alert.conditions) {
+        // For complex alerts, create a key from all conditions
+        const conditionsKey = alert.conditions.map(c => `${c.field}${c.op}${c.value}`).join('&');
+        return `${symbol}-complex-${conditionsKey}`;
+      } else {
+        // For simple alerts
+        return `${symbol}-${alert.field}-${alert.op}-${alert.value}`;
+      }
+    }
+    
+    function isAlertRecentlyTriggered(symbol, alert) {
+      const key = getAlertKey(symbol, alert);
+      const lastTriggered = triggeredAlerts.get(key);
+      
+      if (!lastTriggered) return false;
+      
+      const timeSinceLastTrigger = Date.now() - lastTriggered;
+      return timeSinceLastTrigger < ALERT_COOLDOWN;
+    }
+    
+    function markAlertAsTriggered(symbol, alert) {
+      const key = getAlertKey(symbol, alert);
+      triggeredAlerts.set(key, Date.now());
+      
+      // Clean up old entries every once in a while
+      if (triggeredAlerts.size > 100) {
+        const cutoff = Date.now() - ALERT_COOLDOWN;
+        for (const [k, v] of triggeredAlerts.entries()) {
+          if (v < cutoff) {
+            triggeredAlerts.delete(k);
+          }
+        }
+      }
+    }
+    
     // --- Alerts Data Model ---
     function getAlerts(symbol) {
       const all = JSON.parse(localStorage.getItem('stockAlerts') || '{}');
@@ -1385,9 +1590,63 @@
         }
       }
     }
-    function addAlert(symbol, field, op, value) {
+    function addAlert(symbol, conditions, type = 'info', notes = '') {
       let alerts = getAlerts(symbol);
-      alerts.push({ id: Date.now() + Math.random().toString(36).slice(2), field, op, value: Number(value) });
+      
+      // Generate a truly unique ID to prevent any duplicates
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).slice(2, 11);
+      const uniqueId = `${timestamp}-${randomSuffix}`;
+      
+      // Handle both simple and complex alerts
+      let alertData;
+      if (Array.isArray(conditions)) {
+        // Complex alert with multiple conditions
+        alertData = {
+          id: uniqueId,
+          isComplex: true,
+          conditions: conditions,
+          operator: 'AND', // For now, we'll use AND logic
+          type: type || 'info',
+          notes: notes || '',
+          created: new Date().toISOString()
+        };
+      } else {
+        // Simple alert (backward compatibility)
+        const { field, op, value } = conditions;
+        alertData = {
+          id: uniqueId,
+          field,
+          op,
+          value: Number(value),
+          type: type || 'info',
+          notes: notes || '',
+          created: new Date().toISOString()
+        };
+      }
+      
+      // Check for duplicate alerts with same conditions
+      const isDuplicate = alerts.some(existingAlert => {
+        if (Array.isArray(conditions)) {
+          // Complex alert comparison
+          return existingAlert.isComplex && 
+                 existingAlert.conditions && 
+                 JSON.stringify(existingAlert.conditions) === JSON.stringify(conditions);
+        } else {
+          // Simple alert comparison
+          return !existingAlert.isComplex &&
+                 existingAlert.field === conditions.field &&
+                 existingAlert.op === conditions.op &&
+                 existingAlert.value === Number(conditions.value);
+        }
+      });
+      
+      if (isDuplicate) {
+        console.log('Duplicate alert detected, not adding');
+        return false; // Return false to indicate duplicate
+      }
+      
+      alerts.push(alertData);
       setAlerts(symbol, alerts);
       
       // Update alert badges immediately
@@ -1425,27 +1684,85 @@
         const card = document.createElement('div');
         card.className = 'alert-list-card';
         
-        // Format the value display based on field type
-        let displayValue = alert.value;
-        let fieldDisplay = alert.field;
+        // Get alert type info
+        const alertType = alert.type || 'info';
+        const alertTypeIcons = {
+          'success': 'bi-check-circle-fill text-success',
+          'warning': 'bi-exclamation-triangle-fill text-warning', 
+          'error': 'bi-x-circle-fill text-danger',
+          'info': 'bi-info-circle-fill text-info',
+          'alert': 'bi-bell-fill text-primary'
+        };
+        const typeIcon = alertTypeIcons[alertType] || alertTypeIcons['info'];
         
-        if (alert.field === 'price' || alert.field === 'ma50' || alert.field === 'ma200' || alert.field === 'atr14') {
-          displayValue = '$' + alert.value.toFixed(2);
-        } else if (alert.field === 'volume') {
-          displayValue = (alert.value / 1e6).toFixed(1) + 'M';
-        } else if (alert.field === 'rsi') {
-          displayValue = alert.value.toFixed(1);
+        let conditionText = '';
+        
+        if (alert.isComplex && alert.conditions) {
+          // Complex alert display
+          const conditionTexts = alert.conditions.map(condition => {
+            let displayValue = condition.value;
+            let fieldDisplay = condition.field;
+            
+            if (condition.field === 'price' || condition.field === 'ma50' || condition.field === 'ma200' || condition.field === 'atr14') {
+              displayValue = '$' + condition.value.toFixed(2);
+            } else if (condition.field === 'volume') {
+              displayValue = (condition.value / 1e6).toFixed(1) + 'M';
+            } else if (condition.field === 'rsi') {
+              displayValue = condition.value.toFixed(1);
+            }
+            
+            // Improve field names
+            if (condition.field === 'ma50') fieldDisplay = '50-day Avg';
+            if (condition.field === 'ma200') fieldDisplay = '200-day Avg';
+            if (condition.field === 'atr14') fieldDisplay = 'ATR(14)';
+            if (condition.field === 'rsi') fieldDisplay = 'RSI(14)';
+            if (condition.field === 'price') fieldDisplay = 'Price';
+            if (condition.field === 'volume') fieldDisplay = 'Volume';
+            
+            return `<b>${fieldDisplay}</b> ${condition.op} <b>${displayValue}</b>`;
+          });
+          
+          conditionText = conditionTexts.join(' <span class="text-primary fw-bold">AND</span> ');
+        } else {
+          // Simple alert display (backward compatibility)
+          let displayValue = alert.value;
+          let fieldDisplay = alert.field;
+          
+          if (alert.field === 'price' || alert.field === 'ma50' || alert.field === 'ma200' || alert.field === 'atr14') {
+            displayValue = '$' + alert.value.toFixed(2);
+          } else if (alert.field === 'volume') {
+            displayValue = (alert.value / 1e6).toFixed(1) + 'M';
+          } else if (alert.field === 'rsi') {
+            displayValue = alert.value.toFixed(1);
+          }
+          
+          // Improve field names
+          if (alert.field === 'ma50') fieldDisplay = '50-day Avg';
+          if (alert.field === 'ma200') fieldDisplay = '200-day Avg';
+          if (alert.field === 'atr14') fieldDisplay = 'ATR(14)';
+          if (alert.field === 'rsi') fieldDisplay = 'RSI(14)';
+          if (alert.field === 'price') fieldDisplay = 'Price';
+          if (alert.field === 'volume') fieldDisplay = 'Volume';
+          
+          conditionText = `<b>${fieldDisplay}</b> ${alert.op} <b>${displayValue}</b>`;
         }
         
-        // Improve field names
-        if (alert.field === 'ma50') fieldDisplay = '50-day Avg';
-        if (alert.field === 'ma200') fieldDisplay = '200-day Avg';
-        if (alert.field === 'atr14') fieldDisplay = 'ATR(14)';
-        if (alert.field === 'rsi') fieldDisplay = 'RSI(14)';
-        if (alert.field === 'price') fieldDisplay = 'Price';
-        if (alert.field === 'volume') fieldDisplay = 'Volume';
+        // Create card content with type and notes
+        let cardContent = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center mb-1">
+                <i class="bi ${typeIcon} me-2"></i>
+                <span>${conditionText}</span>
+                ${alert.isComplex ? '<span class="badge bg-secondary ms-2 small">Complex</span>' : ''}
+              </div>
+              ${alert.notes ? `<div class="alert-notes text-muted small">${alert.notes}</div>` : ''}
+            </div>
+            <i class="bi bi-trash delete-alert" title="Delete" style="cursor: pointer;"></i>
+          </div>
+        `;
         
-        card.innerHTML = `<span><b>${fieldDisplay}</b> ${alert.op} <b>${displayValue}</b></span> <i class="bi bi-trash delete-alert" title="Delete"></i>`;
+        card.innerHTML = cardContent;
         card.querySelector('.delete-alert').onclick = () => {
           removeAlert(symbol, alert.id);
           renderAlertsList(symbol);
@@ -1846,20 +2163,88 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Add Alert form
       const addAlertForm = document.getElementById('addAlertForm');
-      if (addAlertForm) {
+      if (addAlertForm && !addAlertForm.hasAttribute('data-handler-attached')) {
+        // Mark as having handler attached to prevent duplicate handlers
+        addAlertForm.setAttribute('data-handler-attached', 'true');
+        
+        let isSubmitting = false; // Prevent duplicate submissions
+        
         addAlertForm.onsubmit = function(e) {
           e.preventDefault();
-          const field = document.getElementById('alertField').value;
-          const op = document.getElementById('alertOp').value;
-          let value = document.getElementById('alertValue').value;
-          if (field === 'volume') {
-            value = value * 1e6;
+          
+          // Prevent duplicate submissions
+          if (isSubmitting) {
+            console.log('Duplicate submission prevented');
+            return;
           }
-          if (currentAlertsSymbol && field && op && value) {
-            addAlert(currentAlertsSymbol, field, op, value);
-            renderAlertsList(currentAlertsSymbol);
-            addAlertForm.reset();
-            updateAlertInputDisplay(); // Reset the input display
+          isSubmitting = true;
+          
+          console.log('Processing alert submission...');
+          
+          // Reset flag after a short delay
+          setTimeout(() => {
+            isSubmitting = false;
+          }, 1000);
+          
+          const type = document.getElementById('alertType').value;
+          const notes = document.getElementById('alertNotes').value.trim();
+          const isComplex = document.getElementById('complexAlertSwitch').checked;
+          
+          if (!currentAlertsSymbol) return;
+          
+          if (isComplex) {
+            // Handle complex alert
+            const conditions = [];
+            const conditionElements = document.querySelectorAll('.condition-row');
+            
+            conditionElements.forEach(row => {
+              const field = row.querySelector('.condition-field').value;
+              const op = row.querySelector('.condition-op').value;
+              let value = row.querySelector('.condition-value').value;
+              
+              if (field === 'volume') {
+                value = value * 1e6;
+              }
+              
+              if (field && op && value && !isNaN(value)) {
+                conditions.push({ field, op, value: Number(value) });
+              }
+            });
+            
+            if (conditions.length >= 2) {
+              const success = addAlert(currentAlertsSymbol, conditions, type, notes);
+              if (success !== false) {
+                renderAlertsList(currentAlertsSymbol);
+                resetAllForms();
+                showToast('Complex alert added successfully!', 'success');
+              } else {
+                showToast('This alert already exists!', 'warning');
+              }
+            } else {
+              showToast('Complex alerts need at least 2 valid conditions', 'warning');
+            }
+          } else {
+            // Handle simple alert
+            const field = document.getElementById('alertField').value;
+            const op = document.getElementById('alertOp').value;
+            let value = document.getElementById('alertValue').value;
+            
+            if (field === 'volume') {
+              value = value * 1e6;
+            }
+            
+            if (field && op && value && !isNaN(value)) {
+              const success = addAlert(currentAlertsSymbol, { field, op, value }, type, notes);
+              if (success !== false) {
+                renderAlertsList(currentAlertsSymbol);
+                resetAllForms();
+                showToast('Alert added successfully!', 'success');
+              } else {
+                showToast('This alert already exists!', 'warning');
+              }
+            } else {
+              showToast('Please fill in all required fields with valid values', 'warning');
+            }
           }
         };
         // Show appropriate prefix/suffix for different field types
@@ -1867,6 +2252,10 @@
         const alertPrefix = document.getElementById('alertPrefix');
         const alertSuffix = document.getElementById('alertSuffix');
         const alertValue = document.getElementById('alertValue');
+        const alertType = document.getElementById('alertType');
+        const alertNotes = document.getElementById('alertNotes');
+        const alertNotesCount = document.getElementById('alertNotesCount');
+        const alertPriorityDisplay = document.getElementById('alertPriorityDisplay');
         
         function updateAlertInputDisplay() {
           const fieldType = alertField.value;
@@ -1886,9 +2275,197 @@
           }
         }
         
+        function updateAlertTypeDisplay() {
+          const typeDescriptions = {
+            'info': 'Standard notification',
+            'success': 'High priority - positive signal',
+            'warning': 'Medium priority - caution needed',
+            'error': 'Critical priority - immediate action',
+            'alert': 'Important priority - significant update'
+          };
+          alertPriorityDisplay.textContent = typeDescriptions[alertType.value] || 'Standard notification';
+        }
+        
+        function updateNotesCount() {
+          const count = alertNotes.value.length;
+          alertNotesCount.textContent = count;
+          if (count > 180) {
+            alertNotesCount.className = 'text-warning';
+          } else if (count > 150) {
+            alertNotesCount.className = 'text-info';
+          } else {
+            alertNotesCount.className = 'text-muted';
+          }
+        }
+        
         alertField.onchange = updateAlertInputDisplay;
-        // Initial state
+        alertType.onchange = updateAlertTypeDisplay;
+        alertNotes.oninput = updateNotesCount;
+        
+        // Complex alert toggle
+        const complexAlertSwitch = document.getElementById('complexAlertSwitch');
+        const simpleAlertForm = document.getElementById('simpleAlertForm');
+        const complexAlertForm = document.getElementById('complexAlertForm');
+        const addConditionBtn = document.getElementById('addConditionBtn');
+        
+        function toggleAlertMode() {
+          if (complexAlertSwitch.checked) {
+            simpleAlertForm.style.display = 'none';
+            complexAlertForm.style.display = 'block';
+            
+            // Disable simple form validation
+            alertField.removeAttribute('required');
+            alertValue.removeAttribute('required');
+            
+            initializeComplexForm();
+          } else {
+            simpleAlertForm.style.display = 'block';
+            complexAlertForm.style.display = 'none';
+            
+            // Enable simple form validation
+            alertField.setAttribute('required', '');
+            alertValue.setAttribute('required', '');
+            
+            // Disable complex form validation
+            const conditionElements = document.querySelectorAll('.condition-row');
+            conditionElements.forEach(row => {
+              row.querySelector('.condition-field').removeAttribute('required');
+              row.querySelector('.condition-value').removeAttribute('required');
+            });
+          }
+        }
+        
+        function initializeComplexForm() {
+          const alertConditions = document.getElementById('alertConditions');
+          alertConditions.innerHTML = '';
+          addCondition(); // Add first condition
+          addCondition(); // Add second condition
+        }
+        
+        function addCondition() {
+          const alertConditions = document.getElementById('alertConditions');
+          const conditionIndex = alertConditions.children.length;
+          
+          const conditionRow = document.createElement('div');
+          conditionRow.className = 'condition-row mb-2 p-2 border rounded';
+          conditionRow.innerHTML = `
+            <div class="row g-2 align-items-center">
+              <div class="col-4">
+                <select class="form-select form-select-sm condition-field">
+                  <option value="price">Price</option>
+                  <option value="rsi">RSI(14)</option>
+                  <option value="ma50">50-day Avg</option>
+                  <option value="ma200">200-day Avg</option>
+                  <option value="atr14">ATR(14)</option>
+                  <option value="volume">Volume (M)</option>
+                </select>
+              </div>
+              <div class="col-2">
+                <select class="form-select form-select-sm condition-op">
+                  <option value=">">&gt;</option>
+                  <option value="<">&lt;</option>
+                  <option value="=">=</option>
+                </select>
+              </div>
+              <div class="col-5">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text condition-prefix" style="display:none;">$</span>
+                  <input type="number" class="form-control condition-value" step="any" placeholder="Value">
+                  <span class="input-group-text condition-suffix" style="display:none;">M</span>
+                </div>
+              </div>
+              <div class="col-1">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-condition" title="Remove condition">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          
+          alertConditions.appendChild(conditionRow);
+          
+          // Add event handlers for the new condition
+          const fieldSelect = conditionRow.querySelector('.condition-field');
+          const prefix = conditionRow.querySelector('.condition-prefix');
+          const suffix = conditionRow.querySelector('.condition-suffix');
+          const valueInput = conditionRow.querySelector('.condition-value');
+          const removeBtn = conditionRow.querySelector('.remove-condition');
+          
+          fieldSelect.onchange = function() {
+            updateConditionInputDisplay(fieldSelect, prefix, suffix, valueInput);
+          };
+          
+          removeBtn.onclick = function() {
+            if (alertConditions.children.length > 2) {
+              conditionRow.remove();
+            } else {
+              showToast('Complex alerts need at least 2 conditions', 'warning');
+            }
+          };
+          
+          // Initial display update
+          updateConditionInputDisplay(fieldSelect, prefix, suffix, valueInput);
+        }
+        
+        function updateConditionInputDisplay(fieldSelect, prefix, suffix, valueInput) {
+          const fieldType = fieldSelect.value;
+          
+          // Reset display
+          prefix.style.display = 'none';
+          suffix.style.display = 'none';
+          
+          if (fieldType === 'price' || fieldType === 'ma50' || fieldType === 'ma200' || fieldType === 'atr14') {
+            prefix.style.display = '';
+            valueInput.placeholder = '0.00';
+          } else if (fieldType === 'volume') {
+            suffix.style.display = '';
+            valueInput.placeholder = '1.5';
+          } else if (fieldType === 'rsi') {
+            valueInput.placeholder = '70';
+          }
+        }
+        
+        function resetComplexForm() {
+          if (complexAlertSwitch.checked) {
+            initializeComplexForm();
+          }
+        }
+        
+        function resetAllForms() {
+          // Reset simple form
+          alertField.value = 'price';
+          alertValue.value = '';
+          
+          // Reset complex form
+          const alertConditions = document.getElementById('alertConditions');
+          if (alertConditions) {
+            alertConditions.innerHTML = '';
+          }
+          
+          // Reset common fields
+          alertType.value = 'info';
+          alertNotes.value = '';
+          
+          // Update displays
+          updateAlertInputDisplay();
+          updateAlertTypeDisplay();
+          updateNotesCount();
+          
+          // Reinitialize complex form if needed
+          if (complexAlertSwitch.checked) {
+            initializeComplexForm();
+          }
+        }
+        
+        complexAlertSwitch.onchange = toggleAlertMode;
+        addConditionBtn.onclick = addCondition;
+        
+        // Initial state - ensure we start in simple mode
+        complexAlertSwitch.checked = false;
+        toggleAlertMode();
         updateAlertInputDisplay();
+        updateAlertTypeDisplay();
+        updateNotesCount();
       }
       
       // Notes form
@@ -2041,7 +2618,7 @@
               // Reload the page to apply everything
               location.reload();
             } catch (err) {
-              alert('Import failed: ' + err.message);
+              showToast('Import failed: ' + err.message, 'error');
             }
           };
           reader.readAsText(file);
@@ -2062,35 +2639,95 @@
           <div class="modal-body">
             <ul class="alert-list" id="alertsList"></ul>
             <hr/>
-            <div class="mb-2"><b>Add Alert</b></div>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <b>Add Alert</b>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="complexAlertSwitch">
+                  <label class="form-check-label small" for="complexAlertSwitch">Complex Alert</label>
+                </div>
+              </div>
+            </div>
+            
             <form id="addAlertForm">
-              <div class="row g-2 align-items-center">
-                <div class="col-5">
-                  <select class="form-select" id="alertField" required>
-                    <option value="price">Price</option>
-                    <option value="rsi">RSI(14)</option>
-                    <option value="ma50">50-day Avg</option>
-                    <option value="ma200">200-day Avg</option>
-                    <option value="atr14">ATR(14)</option>
-                    <option value="volume">Volume (M)</option>
-                  </select>
-                </div>
-                <div class="col-2">
-                  <select class="form-select" id="alertOp" required>
-                    <option value=">">&gt;</option>
-                    <option value="<">&lt;</option>
-                    <option value="=">=</option>
-                  </select>
-                </div>
-                <div class="col-5 d-flex align-items-center" id="alertValueWrapper">
-                  <div class="input-group">
-                    <span class="input-group-text" id="alertPrefix" style="display:none;">$</span>
-                    <input type="number" class="form-control" id="alertValue" required step="any" placeholder="Value">
-                    <span class="input-group-text" id="alertSuffix" style="display:none;">M</span>
+              <!-- Simple Alert Form (Default) -->
+              <div id="simpleAlertForm">
+                <div class="row g-2 align-items-center mb-2">
+                  <div class="col-5">
+                    <select class="form-select" id="alertField" required>
+                      <option value="price">Price</option>
+                      <option value="rsi">RSI(14)</option>
+                      <option value="ma50">50-day Avg</option>
+                      <option value="ma200">200-day Avg</option>
+                      <option value="atr14">ATR(14)</option>
+                      <option value="volume">Volume (M)</option>
+                    </select>
+                  </div>
+                  <div class="col-2">
+                    <select class="form-select" id="alertOp" required>
+                      <option value=">">&gt;</option>
+                      <option value="<">&lt;</option>
+                      <option value="=">=</option>
+                    </select>
+                  </div>
+                  <div class="col-5 d-flex align-items-center" id="alertValueWrapper">
+                    <div class="input-group">
+                      <span class="input-group-text" id="alertPrefix" style="display:none;">$</span>
+                      <input type="number" class="form-control" id="alertValue" required step="any" placeholder="Value">
+                      <span class="input-group-text" id="alertSuffix" style="display:none;">M</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary btn-sm mt-2 w-100">Add Alert</button>
+              
+              <!-- Complex Alert Form -->
+              <div id="complexAlertForm" style="display:none;">
+                <div class="mb-3">
+                  <label class="form-label small">Alert Conditions <span class="text-muted">(All conditions must be true)</span></label>
+                  <div id="alertConditions">
+                    <!-- Dynamic conditions will be added here -->
+                  </div>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addConditionBtn">
+                    <i class="bi bi-plus"></i> Add Condition
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Alert Type Selection -->
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label for="alertType" class="form-label small">Alert Type</label>
+                  <select class="form-select form-select-sm" id="alertType" required>
+                    <option value="info">📘 Info - General notification</option>
+                    <option value="success">✅ Success - Positive target hit</option>
+                    <option value="warning">⚠️ Warning - Caution required</option>
+                    <option value="error">❌ Critical - Immediate attention</option>
+                    <option value="alert">🔔 Alert - Important update</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Priority</label>
+                  <div class="text-muted small" id="alertPriorityDisplay">Standard notification</div>
+                </div>
+              </div>
+              
+              <!-- Alert Notes -->
+              <div class="mb-2">
+                <label for="alertNotes" class="form-label small">
+                  Notes <span class="text-muted">(optional)</span>
+                </label>
+                <textarea 
+                  class="form-control form-control-sm" 
+                  id="alertNotes" 
+                  rows="2" 
+                  placeholder="Add context about this alert (e.g., 'Resistance level', 'Entry point', 'Stop loss')"
+                  maxlength="200"></textarea>
+                <div class="form-text small">
+                  <span id="alertNotesCount">0</span>/200 characters
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary btn-sm w-100">Add Alert</button>
             </form>
           </div>
         </div>
@@ -4143,13 +4780,13 @@ Use #hashtags to organize your notes by:
       const name = nameInput.value.trim();
       
       if (!name) {
-        alert('Please enter a watchlist name');
+        showToast('Please enter a watchlist name', 'warning');
         return;
       }
       
       const watchlists = getWatchlists();
       if (watchlists.find(w => w.name === name)) {
-        alert('A watchlist with that name already exists!');
+        showToast('A watchlist with that name already exists!', 'warning');
         return;
       }
       
@@ -4162,6 +4799,9 @@ Use #hashtags to organize your notes by:
       renderWatchlistTabs();
       renderStocks();
       
+      // Show success toast
+      showToast(`Watchlist "${name}" created successfully!`, 'success');
+      
       // Clear input and refresh modal
       nameInput.value = '';
       renderWatchlistManagementModal();
@@ -4170,7 +4810,7 @@ Use #hashtags to organize your notes by:
     function createPredefinedWatchlist(name) {
       const watchlists = getWatchlists();
       if (watchlists.find(w => w.name === name)) {
-        alert('A watchlist with that name already exists!');
+        showToast('A watchlist with that name already exists!', 'warning');
         return;
       }
       
@@ -4206,7 +4846,7 @@ Use #hashtags to organize your notes by:
       
       // Check if new name already exists
       if (watchlists.find(w => w.name === trimmedName)) {
-        alert('A watchlist with that name already exists!');
+        showToast('A watchlist with that name already exists!', 'warning');
         return;
       }
       
@@ -4229,7 +4869,7 @@ Use #hashtags to organize your notes by:
     function deleteWatchlist(name) {
       const watchlists = getWatchlists();
       if (watchlists.length <= 1) {
-        alert('Cannot delete the last watchlist!');
+        showToast('Cannot delete the last watchlist!', 'warning');
         return;
       }
       
@@ -4706,6 +5346,8 @@ Use #hashtags to organize your notes by:
     window.selectSuggestionByIndex = selectSuggestionByIndex;
     window.selectSuggestion = selectSuggestion;
     
+    // Debug functions are available in local scope only
+    
     // --- Smart Alert Configuration ---
     
     // Smart Alert settings with defaults
@@ -4822,20 +5464,60 @@ Use #hashtags to organize your notes by:
     }
     
     // Show toast notification
-    function showToast(message, type = 'info') {
+    function showToast(message, type = 'info', duration = 5000) {
       // Create toast element
       const toast = document.createElement('div');
-      toast.className = `toast align-items-center text-white bg-${type} border-0`;
+      toast.className = `toast align-items-center border-0 mb-2`;
       toast.setAttribute('role', 'alert');
       toast.setAttribute('aria-live', 'assertive');
       toast.setAttribute('aria-atomic', 'true');
       
+      // Set colors based on type and dark mode
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      let bgClass, textClass, iconClass, closeClass;
+      
+      switch (type) {
+        case 'success':
+          bgClass = isDarkMode ? 'bg-success' : 'bg-success';
+          textClass = 'text-white';
+          iconClass = 'bi-check-circle-fill';
+          closeClass = 'btn-close-white';
+          break;
+        case 'warning':
+          bgClass = isDarkMode ? 'bg-warning' : 'bg-warning';
+          textClass = isDarkMode ? 'text-dark' : 'text-dark';
+          iconClass = 'bi-exclamation-triangle-fill';
+          closeClass = isDarkMode ? 'btn-close' : 'btn-close';
+          break;
+        case 'danger':
+        case 'error':
+          bgClass = isDarkMode ? 'bg-danger' : 'bg-danger';
+          textClass = 'text-white';
+          iconClass = 'bi-exclamation-circle-fill';
+          closeClass = 'btn-close-white';
+          break;
+        case 'alert':
+          bgClass = isDarkMode ? 'bg-info' : 'bg-info';
+          textClass = 'text-white';
+          iconClass = 'bi-bell-fill';
+          closeClass = 'btn-close-white';
+          break;
+        default: // info
+          bgClass = isDarkMode ? 'bg-secondary' : 'bg-info';
+          textClass = 'text-white';
+          iconClass = 'bi-info-circle-fill';
+          closeClass = 'btn-close-white';
+      }
+      
+      toast.classList.add(bgClass, textClass);
+      
       toast.innerHTML = `
         <div class="d-flex">
-          <div class="toast-body">
-            ${message}
+          <div class="toast-body d-flex align-items-center">
+            <i class="bi ${iconClass} me-2"></i>
+            <span>${message}</span>
           </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          <button type="button" class="btn-close ${closeClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       `;
       
@@ -4846,19 +5528,25 @@ Use #hashtags to organize your notes by:
         toastContainer.id = 'toastContainer';
         toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
         toastContainer.style.zIndex = '9999';
+        toastContainer.style.maxWidth = '350px';
         document.body.appendChild(toastContainer);
       }
       
-      toastContainer.appendChild(toast);
+      // Add toast to the top of the container (newest first)
+      toastContainer.insertBefore(toast, toastContainer.firstChild);
       
-      // Show toast
-      const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 5000 });
+      // Show toast with custom duration
+      const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: duration });
       bsToast.show();
       
       // Remove toast element after it's hidden
       toast.addEventListener('hidden.bs.toast', () => {
-        toast.remove();
+        if (toast.parentNode) {
+          toast.remove();
+        }
       });
+      
+      return toast;
     }
     
     // Request notification permission on page load
@@ -4866,9 +5554,152 @@ Use #hashtags to organize your notes by:
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
           console.log('Notification permission:', permission);
+          if (permission === 'granted') {
+            showToast('Browser notifications enabled! You\'ll receive alerts even when in other tabs.', 'success', 8000);
+          }
         });
       }
     }
+    
+    // Enhanced Browser Notification System
+    function sendBrowserNotification(symbol, alertMessage, alert, alertType) {
+      // Check if browser notifications are supported
+      if (!('Notification' in window)) {
+        console.log('Browser notifications not supported');
+        return;
+      }
+      
+      // IMPORTANT: Only send notifications if permission is explicitly granted
+      if (Notification.permission !== 'granted') {
+        console.log('Browser notifications not granted - permission status:', Notification.permission);
+        return;
+      }
+      
+      // Check notification preferences (user can disable)
+      const notificationsEnabled = localStorage.getItem('browserNotificationsEnabled') !== 'false';
+      if (!notificationsEnabled) {
+        console.log('Browser notifications disabled by user');
+        return;
+      }
+      
+      const sendNotification = (title, body, icon, actions = []) => {
+        try {
+          // Format notification body (single line for notifications)
+          const cleanBody = body.replace(/\n/g, ' • ').replace(/📝|🔗/g, '').trim();
+          
+          // Create notification options
+          const options = {
+            body: cleanBody,
+            icon: icon || '/favicon.ico', // Use site favicon or default
+            tag: `stock-alert-${symbol}`, // Prevents duplicate notifications for same stock
+            renotify: true, // Show new notification even if tag exists
+            requireInteraction: alertType === 'error', // Keep critical alerts open
+            silent: false,
+            data: {
+              symbol: symbol,
+              alert: alert,
+              timestamp: Date.now()
+            }
+          };
+          
+          // Add action buttons if supported
+          if (actions.length > 0 && 'actions' in Notification.prototype) {
+            options.actions = actions;
+          }
+          
+          // Create and show notification
+          const notification = new Notification(title, options);
+          
+          // Auto-close after delay (except for error alerts)
+          if (alertType !== 'error') {
+            setTimeout(() => {
+              if (notification) {
+                notification.close();
+              }
+            }, 10000); // Auto-close after 10 seconds
+          }
+          
+          // Handle notification click
+          notification.onclick = function(event) {
+            event.preventDefault();
+            window.focus(); // Focus the window
+            
+            // Optional: Open alerts modal for this stock
+            if (typeof showAlertsModal === 'function') {
+              showAlertsModal(symbol);
+            }
+            
+            notification.close();
+          };
+          
+          // Handle notification close
+          notification.onclose = function() {
+            console.log(`Notification closed for ${symbol}`);
+          };
+          
+          console.log(`Browser notification sent for ${symbol}`);
+          
+        } catch (error) {
+          console.error('Error creating notification:', error);
+        }
+      };
+      
+      // Handle different permission states
+      if (Notification.permission === 'granted') {
+        // Get appropriate icon and title based on alert type
+        let title = `📈 Stock Alert: ${symbol}`;
+        let icon = null;
+        
+        switch (alertType) {
+          case 'success':
+            title = `✅ Buy Signal: ${symbol}`;
+            break;
+          case 'warning':
+            title = `⚠️ Caution: ${symbol}`;
+            break;
+          case 'error':
+            title = `🚨 Critical Alert: ${symbol}`;
+            break;
+          case 'alert':
+            title = `🔔 Important: ${symbol}`;
+            break;
+          default:
+            title = `📊 Alert: ${symbol}`;
+        }
+        
+        // Add action buttons for enhanced interaction
+        const actions = [
+          {
+            action: 'view',
+            title: 'View Details',
+            icon: '/path/to/view-icon.png'
+          },
+          {
+            action: 'dismiss',
+            title: 'Dismiss',
+            icon: '/path/to/dismiss-icon.png'
+          }
+        ];
+        
+        sendNotification(title, alertMessage, icon, actions);
+      }
+    }
+    
+    // Function to test browser notifications
+    function testBrowserNotification() {
+      const testAlert = {
+        field: 'price',
+        op: '>',
+        value: 100,
+        type: 'info',
+        notes: 'This is a test notification'
+      };
+      
+      sendBrowserNotification('TEST', 'This is a test notification to verify browser alerts work across tabs', testAlert, 'info');
+    }
+    
+    // Make test function available globally for settings
+    window.testBrowserNotification = testBrowserNotification;
     
     // --- CBOE Symbol Cache System ---
     async function loadSymbolCache() {
@@ -4987,6 +5818,9 @@ Use #hashtags to organize your notes by:
         setTrackedStocks(stocks);
         stockInput.value = '';
         
+        // Show success toast
+        showToast(`Added ${symbol} to watchlist`, 'success');
+        
         // Update tabs immediately to show new count
         renderWatchlistTabs();
         
@@ -4998,6 +5832,10 @@ Use #hashtags to organize your notes by:
         
         // Update cache status
         updateCacheStatus();
+      } else {
+        // Stock already exists - show warning toast
+        showToast(`${symbol} is already in your watchlist`, 'warning');
+        stockInput.value = '';
       }
     };
 
@@ -5089,6 +5927,175 @@ Use #hashtags to organize your notes by:
           countLabel.style.display = 'none';
         }
       }
+    }
+    
+    // Separate function to check alerts for any stock regardless of current view
+    function checkAlertsForStock(symbol, data, context = 'unknown') {
+      const alerts = getAlerts(symbol);
+      if (alerts.length === 0) return; // No alerts to check
+      
+      console.log(`🔍 [${context}] Checking ${alerts.length} alerts for ${symbol}...`);
+      console.log(`🔍 [${context}] Current data for ${symbol}:`, {
+        price: data.price,
+        volume: data.volume,
+        rsi: data.rsi,
+        priceDir: data.priceDir,
+        lastUpdated: data.lastUpdated ? new Date(data.lastUpdated).toLocaleTimeString() : 'N/A'
+      });
+      
+      alerts.forEach(alert => {
+        let triggered = false;
+        let alertMessage = '';
+        
+        if (alert.isComplex && alert.conditions) {
+          // Handle complex alert
+          let allConditionsMet = true;
+          const conditionResults = [];
+          
+          alert.conditions.forEach(condition => {
+            let val = data[condition.field];
+            if (val == null) {
+              allConditionsMet = false;
+              return;
+            }
+            
+            let conditionMet = false;
+            if (condition.op === '>' && val > condition.value) conditionMet = true;
+            if (condition.op === '<' && val < condition.value) conditionMet = true;
+            if (condition.op === '=' && val == condition.value) conditionMet = true;
+            
+            if (!conditionMet) {
+              allConditionsMet = false;
+            }
+            
+            // Format condition for display
+            let fieldDisplay = condition.field;
+            if (condition.field === 'ma50') fieldDisplay = '50-day Avg';
+            if (condition.field === 'ma200') fieldDisplay = '200-day Avg';
+            if (condition.field === 'atr14') fieldDisplay = 'ATR(14)';
+            if (condition.field === 'rsi') fieldDisplay = 'RSI(14)';
+            if (condition.field === 'price') fieldDisplay = 'Price';
+            if (condition.field === 'volume') fieldDisplay = 'Volume';
+            
+            let displayValue = condition.value;
+            if (condition.field === 'price' || condition.field === 'ma50' || condition.field === 'ma200' || condition.field === 'atr14') {
+              displayValue = '$' + condition.value.toFixed(2);
+            } else if (condition.field === 'volume') {
+              displayValue = (condition.value / 1e6).toFixed(1) + 'M';
+            } else if (condition.field === 'rsi') {
+              displayValue = condition.value.toFixed(1);
+            }
+            
+            conditionResults.push(`${fieldDisplay} ${condition.op} ${displayValue}`);
+          });
+          
+          triggered = allConditionsMet;
+          if (triggered) {
+            alertMessage = `${symbol}: ${conditionResults.join(' AND ')}`;
+          }
+        } else {
+          // Handle simple alert (backward compatibility)
+          let val = data[alert.field];
+          if (val == null) return;
+          
+          if (alert.op === '>' && val > alert.value) triggered = true;
+          if (alert.op === '<' && val < alert.value) triggered = true;
+          if (alert.op === '=' && val == alert.value) triggered = true;
+          
+          if (triggered) {
+            // Format the field display
+            let fieldDisplay = alert.field;
+            if (alert.field === 'ma50') fieldDisplay = '50-day Avg';
+            if (alert.field === 'ma200') fieldDisplay = '200-day Avg';
+            if (alert.field === 'atr14') fieldDisplay = 'ATR(14)';
+            if (alert.field === 'rsi') fieldDisplay = 'RSI(14)';
+            if (alert.field === 'price') fieldDisplay = 'Price';
+            if (alert.field === 'volume') fieldDisplay = 'Volume';
+            
+            // Format the value display
+            let displayValue = alert.value;
+            if (alert.field === 'price' || alert.field === 'ma50' || alert.field === 'ma200' || alert.field === 'atr14') {
+              displayValue = '$' + alert.value.toFixed(2);
+            } else if (alert.field === 'volume') {
+              displayValue = (alert.value / 1e6).toFixed(1) + 'M';
+            } else if (alert.field === 'rsi') {
+              displayValue = alert.value.toFixed(1);
+            }
+            
+            alertMessage = `${symbol}: ${fieldDisplay} ${alert.op} ${displayValue}`;
+          }
+        }
+        
+        if (triggered) {
+          console.log(`🚨 [${context}] ALERT TRIGGERED for ${symbol}: ${alertMessage}`);
+          
+          // Check if this alert was recently triggered to prevent spam
+          if (isAlertRecentlyTriggered(symbol, alert)) {
+            console.log(`⏰ [${context}] Alert for ${symbol} was recently triggered, skipping...`);
+            return; // Skip this alert, it was recently triggered
+          }
+          
+          console.log(`✅ [${context}] Processing alert for ${symbol} (not recently triggered)`);
+          
+          // Mark this alert as triggered
+          markAlertAsTriggered(symbol, alert);
+          
+          // Add notes to alert message if present
+          if (alert.notes && alert.notes.trim()) {
+            alertMessage += `\n📝 ${alert.notes}`;
+          }
+          
+          // Add complexity indicator
+          if (alert.isComplex) {
+            alertMessage += '\n🔗 Complex Alert';
+          }
+          
+          // Get current watchlist name for context
+          const currentWatchlist = getCurrentWatchlistName();
+          const symbolWatchlist = findWatchlistForSymbol(symbol);
+          
+          // Add watchlist context if alert is from a different watchlist
+          if (symbolWatchlist && symbolWatchlist !== currentWatchlist) {
+            alertMessage += `\n📋 From: ${symbolWatchlist}`;
+          }
+          
+          // Use the alert's specified type, fallback to 'alert' for compatibility
+          const alertType = alert.type || 'alert';
+          
+          // Always show toast for immediate visual feedback - this will show for ALL alerts
+          console.log(`📱 [${context}] Showing toast for ${symbol}: ${alertMessage}`);
+          showToast(alertMessage, alertType, 15000); // Show for 15 seconds for cross-watchlist alerts
+          
+          // Enhanced Browser Notification System
+          console.log(`🌐 [${context}] Sending browser notification for ${symbol}`);
+          sendBrowserNotification(symbol, alertMessage, alert, alertType);
+          
+          // Send email if user email is set
+          const userEmail = localStorage.getItem('userEmail');
+          if (userEmail && window.emailjs && emailjs.send) {
+            emailjs.send("service_wtzp4kp","template_muzrxdr",{
+              stock: symbol,
+              email: userEmail,
+              field: alert.field,
+              op: alert.op,
+              value: alert.value
+            });
+          }
+          
+          console.log(`🚨 Alert triggered for ${symbol}: ${alertMessage}`);
+        }
+      });
+    }
+    
+    // Helper function to find which watchlist contains a specific symbol
+    function findWatchlistForSymbol(symbol) {
+      const watchlists = getWatchlists();
+      for (const watchlist of watchlists) {
+        if (watchlist.stocks.includes(symbol)) {
+          return watchlist.name;
+        }
+      }
+      return null;
     }
 
     // Update display for a single stock
@@ -5477,44 +6484,7 @@ Use #hashtags to organize your notes by:
       }
 
       // --- Check alerts and notify if triggered ---
-      const alerts = getAlerts(symbol);
-      alerts.forEach(alert => {
-        let val = data[alert.field];
-        if (val == null) return;
-        let triggered = false;
-        if (alert.op === '>' && val > alert.value) triggered = true;
-        if (alert.op === '<' && val < alert.value) triggered = true;
-        if (alert.op === '=' && val == alert.value) triggered = true;
-        if (triggered) {
-          // Try browser notification, else fallback to alert()
-          if (window.Notification && Notification.permission === 'granted') {
-            new Notification(`Stock Alert: ${symbol}`,
-              { body: `${alert.field} ${alert.op} ${alert.value}` });
-          } else if (window.Notification && Notification.permission !== 'denied') {
-            Notification.requestPermission().then(p => {
-              if (p === 'granted') {
-                new Notification(`Stock Alert: ${symbol}`,
-                  { body: `${alert.field} ${alert.op} ${alert.value}` });
-              } else {
-                window.alert(`Stock Alert for ${symbol}: ${alert.field} ${alert.op} ${alert.value}`);
-              }
-            });
-          } else {
-            window.alert(`Stock Alert for ${symbol}: ${alert.field} ${alert.op} ${alert.value}`);
-          }
-          // Send email if user email is set
-          const userEmail = localStorage.getItem('userEmail');
-          if (userEmail && window.emailjs && emailjs.send) {
-            emailjs.send("service_wtzp4kp","template_muzrxdr",{
-              stock: symbol,
-              email: userEmail,
-              field: alert.field,
-              op: alert.op,
-              value: alert.value
-            });
-          }
-        }
-      });
+      checkAlertsForStock(symbol, data, 'updateSingleStockDisplay');
       
       // RSI(14) with trend indicator
       const rsiTrendEl = document.getElementById(`${symbol}-rsiTrend`);
@@ -5706,7 +6676,7 @@ Use #hashtags to organize your notes by:
     let lastCacheTime = 0;
     const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes for real-time data
     const HISTORICAL_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours for historical data
-    const CURRENT_DATA_CACHE_DURATION = 15 * 60 * 1000; // 15 minutes for current processed data (background update interval)
+    const CURRENT_DATA_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for current processed data (background update interval)
     const HISTORICAL_CACHE_KEY = 'stockHistoricalData';
     const HISTORICAL_CACHE_TIMESTAMP_KEY = 'stockHistoricalDataTimestamp';
     const CURRENT_DATA_CACHE_KEY = 'stockCurrentData';
@@ -5715,6 +6685,8 @@ Use #hashtags to organize your notes by:
     // Background update system
     let backgroundUpdateTimer = null;
     let isBackgroundUpdating = false;
+    let consecutiveFailures = 0;
+    const MAX_CONSECUTIVE_FAILURES = 5; // Stop background updates after 5 consecutive failures
     
     // Load historical data from localStorage
     function loadHistoricalDataFromStorage() {
@@ -5801,13 +6773,19 @@ Use #hashtags to organize your notes by:
         clearInterval(backgroundUpdateTimer);
       }
       
-      // Start 15-minute background updates
+      // Start 30-minute background updates
       backgroundUpdateTimer = setInterval(async () => {
-        console.log('Starting background update of stock data...');
+        console.log('Starting scheduled background update of stock data...');
         await performBackgroundUpdate();
-      }, CURRENT_DATA_CACHE_DURATION); // 15 minutes
+      }, CURRENT_DATA_CACHE_DURATION); // 30 minutes
       
-      console.log('Background update system started (15-minute intervals)');
+      console.log('Background update system started (30-minute intervals)');
+      
+      // Run initial background update after a delay to let UI load first
+      setTimeout(async () => {
+        console.log('Running initial background update...');
+        await performBackgroundUpdate();
+      }, 10000); // Wait 10 seconds after startup
     }
     
     // Perform background API updates
@@ -5817,52 +6795,180 @@ Use #hashtags to organize your notes by:
         return;
       }
       
+      // Check circuit breaker
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        console.log(`🚫 Background updates disabled due to ${consecutiveFailures} consecutive failures.`);
+        return;
+      }
+      
       isBackgroundUpdating = true;
       
-      // Always update both stocks and indexes in background
-      const stocks = getTrackedStocks();
-      const allSymbols = [...new Set([...stocks, ...MAJOR_INDEXES])]; // Remove duplicates if any
+      // Get stocks from ALL watchlists, not just the current one
+      const watchlists = getWatchlists();
+      const allStocksFromAllWatchlists = new Set();
+      
+      // Collect all unique stocks from all watchlists
+      watchlists.forEach(watchlist => {
+        watchlist.stocks.forEach(symbol => {
+          allStocksFromAllWatchlists.add(symbol);
+        });
+      });
+      
+      // Convert to array and combine with indexes
+      const allStocks = Array.from(allStocksFromAllWatchlists);
+      const allSymbols = [...new Set([...allStocks, ...MAJOR_INDEXES])]; // Remove duplicates if any
       
       if (allSymbols.length === 0) {
         isBackgroundUpdating = false;
         return;
       }
       
-      console.log(`Background updating ${allSymbols.length} symbols (${stocks.length} stocks + ${MAJOR_INDEXES.length} indexes)...`);
+      console.log(`Background updating ${allSymbols.length} symbols (${allStocks.length} stocks from ${watchlists.length} watchlists + ${MAJOR_INDEXES.length} indexes)...`);
       let updatedCount = 0;
       let errorCount = 0;
+      let fromCacheCount = 0;
 
-      // Run all fetches in parallel
-      const fetchPromises = allSymbols.map(async symbol => {
-        try {
-          const stockData = await fetchStockData(symbol);
-          if (stockData) {
-            currentDataCache[symbol] = stockData;
-            updatedCount++;
-            console.log(`Background updated ${symbol}`);
-          } else {
-            errorCount++;
-            console.warn(`Background update failed for ${symbol}`);
+      // Filter symbols that actually need updating (only if data is stale)
+      const now = Date.now();
+      const symbolsNeedingUpdate = [];
+      
+      allSymbols.forEach(symbol => {
+        const cachedData = currentDataCache[symbol];
+        if (!cachedData || !cachedData.lastUpdated || (now - cachedData.lastUpdated) > CURRENT_DATA_CACHE_DURATION) {
+          symbolsNeedingUpdate.push(symbol);
+        } else {
+          fromCacheCount++;
+          // Still check alerts for cached data
+          const alerts = getAlerts(symbol);
+          if (alerts.length > 0) {
+            console.log(`⚠️ [backgroundUpdate-cached] Checking alerts for ${symbol} (${alerts.length} alerts configured)`);
+            checkAlertsForStock(symbol, cachedData, 'backgroundUpdate-cached');
           }
-        } catch (error) {
-          errorCount++;
-          console.error(`Background update error for ${symbol}:`, error);
         }
       });
+      
+      console.log(`Background update: ${symbolsNeedingUpdate.length} need API updates, ${fromCacheCount} using cache`);
+      
+      if (symbolsNeedingUpdate.length === 0) {
+        console.log('All data is fresh, no API calls needed');
+        isBackgroundUpdating = false;
+        return;
+      }
 
-      await Promise.all(fetchPromises);
+      // Process symbols ONE AT A TIME to avoid rate limiting
+      const DELAY_BETWEEN_REQUESTS = 3000; // 3 seconds between each API call
+      const MAX_RETRIES = 2;
+      
+      for (let i = 0; i < symbolsNeedingUpdate.length; i++) {
+        const symbol = symbolsNeedingUpdate[i];
+        console.log(`Processing symbol ${i + 1} of ${symbolsNeedingUpdate.length}: ${symbol}`);
+        
+        let retryCount = 0;
+        let success = false;
+        
+        while (retryCount <= MAX_RETRIES && !success) {
+          try {
+            // Add extra delay for retries to avoid continued rate limiting
+            if (retryCount > 0) {
+              const retryDelay = 5000 * retryCount; // 5s, 10s for retries
+              console.log(`Retry ${retryCount} for ${symbol}, waiting ${retryDelay/1000}s...`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+            }
+            
+            const stockData = await fetchStockData(symbol);
+            if (stockData) {
+              currentDataCache[symbol] = stockData;
+              updatedCount++;
+              console.log(`✅ Background updated ${symbol} (attempt ${retryCount + 1})`);
+              
+              // Check alerts immediately for this stock (CRITICAL: Real-time alert checking)
+              const alerts = getAlerts(symbol);
+              if (alerts.length > 0) {
+                console.log(`⚠️ Checking alerts for ${symbol} (${alerts.length} alerts configured)`);
+                checkAlertsForStock(symbol, stockData, 'backgroundUpdate');
+              }
+              success = true;
+            } else {
+              throw new Error('No data returned');
+            }
+          } catch (error) {
+            retryCount++;
+            console.warn(`❌ Background update attempt ${retryCount} failed for ${symbol}:`, error.message);
+            
+            if (retryCount > MAX_RETRIES) {
+              errorCount++;
+              console.error(`🚫 Giving up on ${symbol} after ${MAX_RETRIES} retries`);
+            }
+          }
+        }
+        
+        // Add delay between each symbol (except for the last one)
+        if (i < symbolsNeedingUpdate.length - 1) {
+          console.log(`Waiting ${DELAY_BETWEEN_REQUESTS/1000}s before next symbol...`);
+          await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_REQUESTS));
+        }
+      }
 
       // Save updated data to storage
       if (updatedCount > 0) {
         saveCurrentDataToStorage(currentDataCache);
-        console.log(`Background update completed: ${updatedCount} updated, ${errorCount} errors`);
+        console.log(`✅ Background update completed: ${updatedCount} API updates, ${fromCacheCount} from cache, ${errorCount} errors`);
+        consecutiveFailures = 0; // Reset failure counter on success
+        
         // Update UI with fresh data from storage
         await updateUIFromStorage();
+      } else if (errorCount > 0) {
+        consecutiveFailures++;
+        console.log(`❌ Background update failed: ${errorCount} errors (consecutive failures: ${consecutiveFailures})`);
       } else {
-        console.log('Background update completed with no successful updates');
+        console.log('Background update completed with no API calls needed');
+        consecutiveFailures = 0; // Reset on successful completion even with no updates
       }
 
       isBackgroundUpdating = false;
+    }
+    
+    // Check alerts for ALL stocks across ALL watchlists - critical for cross-watchlist alerts
+    async function checkAllAlertsAcrossWatchlists(dataCache) {
+      console.log('🔍 Checking alerts across all watchlists...');
+      
+      // Get all unique stocks from all watchlists
+      const watchlists = getWatchlists();
+      const allStocksWithAlerts = new Set();
+      
+      // Collect all stocks that have alerts
+      watchlists.forEach(watchlist => {
+        watchlist.stocks.forEach(symbol => {
+          const alerts = getAlerts(symbol);
+          if (alerts.length > 0) {
+            allStocksWithAlerts.add(symbol);
+          }
+        });
+      });
+      
+      console.log(`Found ${allStocksWithAlerts.size} stocks with alerts across ${watchlists.length} watchlists`);
+      
+      let alertsChecked = 0;
+      let alertsTriggered = 0;
+      
+      // Check alerts for each stock that has them
+      for (const symbol of allStocksWithAlerts) {
+        const data = dataCache[symbol];
+        if (data) {
+          const alertCountBefore = triggeredAlerts.size;
+          checkAlertsForStock(symbol, data, 'checkAllAlertsAcrossWatchlists');
+          alertsChecked++;
+          
+          // Count if new alerts were triggered
+          if (triggeredAlerts.size > alertCountBefore) {
+            alertsTriggered++;
+          }
+        } else {
+          console.warn(`No data available for ${symbol} to check alerts`);
+        }
+      }
+      
+      console.log(`✅ Alert check complete: ${alertsChecked} stocks checked, ${alertsTriggered} alerts triggered`);
     }
     
     // Update UI from localStorage data only
@@ -6128,8 +7234,19 @@ Use #hashtags to organize your notes by:
       }
     }
 
+    // Cache for market cap data to avoid repeated API calls
+    let marketCapCache = {};
+    const MARKET_CAP_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours - market cap doesn't change frequently
+
     // Dedicated function to fetch market cap data from multiple sources
     async function fetchMarketCap(symbol, metaData = null, currentPrice = null) {
+      // Check cache first
+      const cachedMarketCap = marketCapCache[symbol];
+      if (cachedMarketCap && cachedMarketCap.timestamp && (Date.now() - cachedMarketCap.timestamp) < MARKET_CAP_CACHE_DURATION) {
+        console.log(`[${symbol}] Using cached market cap:`, cachedMarketCap.value);
+        return cachedMarketCap.value;
+      }
+      
       let marketCap = null;
       
       try {
@@ -6139,88 +7256,41 @@ Use #hashtags to organize your notes by:
         if (metaData && metaData.marketCap) {
           marketCap = metaData.marketCap;
           console.log(`[${symbol}] Found market cap in meta.marketCap:`, marketCap);
-          return marketCap;
         } else if (metaData && metaData.sharesOutstanding && currentPrice) {
           // Calculate market cap: shares outstanding * current price
           marketCap = metaData.sharesOutstanding * currentPrice;
           console.log(`[${symbol}] Calculated market cap from shares outstanding (${metaData.sharesOutstanding}) * price (${currentPrice}):`, marketCap);
-          return marketCap;
         }
         
-        console.log(`[${symbol}] No market cap in meta data, trying alternative sources...`);
-        
-        // Method 2: Try Yahoo Finance quote API (different endpoint)
-        try {
-          const quoteUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)}`;
-          console.log(`[${symbol}] Trying quote API...`);
-          
-          const quoteRes = await fetch(quoteUrl);
-          if (quoteRes.ok) {
-            const quoteWrapper = await quoteRes.json();
-            if (quoteWrapper.contents) {
-              const quoteData = JSON.parse(quoteWrapper.contents);
-              
-              if (quoteData.quoteResponse && quoteData.quoteResponse.result && quoteData.quoteResponse.result[0]) {
-                const quote = quoteData.quoteResponse.result[0];
-                if (quote.marketCap) {
-                  marketCap = quote.marketCap;
-                  console.log(`[${symbol}] Found market cap in quote API:`, marketCap);
-                  return marketCap;
-                } else if (quote.sharesOutstanding && currentPrice) {
-                  marketCap = quote.sharesOutstanding * currentPrice;
-                  console.log(`[${symbol}] Calculated market cap from quote API:`, marketCap);
-                  return marketCap;
-                }
-              }
-            }
-          }
-        } catch (quoteError) {
-          console.log(`[${symbol}] Quote API failed:`, quoteError.message);
-        }
-        
-        // Method 3: Try FMP (Financial Modeling Prep) market-capitalization endpoint
+        // Only try API calls if we don't have market cap from meta data
         if (!marketCap) {
-          console.log(`[${symbol}] Attempting market cap from FMP API...`);
+          console.log(`[${symbol}] No market cap in meta data, trying alternative sources...`);
           
+          // Method 2: Try Yahoo Finance quote API (different endpoint) - REDUCED FREQUENCY
           try {
-            const fmpUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://financialmodelingprep.com/api/v3/market-capitalization/${symbol}?apikey=YXzEgLXuiXGOswPD4DSYXgY5ykU1gNfe`)}`;
-            const fmpRes = await fetch(fmpUrl);
-            if (fmpRes.ok) {
-              const fmpWrapper = await fmpRes.json();
-              if (fmpWrapper.contents) {
-                const fmpData = JSON.parse(fmpWrapper.contents);
-                console.log(`[${symbol}] FMP market-cap API response:`, fmpData);
-                if (fmpData && fmpData.length > 0 && fmpData[0].marketCap) {
-                  marketCap = fmpData[0].marketCap;
-                  console.log(`[${symbol}] Found market cap from FMP:`, marketCap);
-                  return marketCap;
+            const quoteUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)}`;
+            console.log(`[${symbol}] Trying quote API...`);
+            
+            const quoteRes = await fetch(quoteUrl);
+            if (quoteRes.ok) {
+              const quoteWrapper = await quoteRes.json();
+              if (quoteWrapper.contents) {
+                const quoteData = JSON.parse(quoteWrapper.contents);
+                
+                if (quoteData.quoteResponse && quoteData.quoteResponse.result && quoteData.quoteResponse.result[0]) {
+                  const quote = quoteData.quoteResponse.result[0];
+                  if (quote.marketCap) {
+                    marketCap = quote.marketCap;
+                    console.log(`[${symbol}] Found market cap in quote API:`, marketCap);
+                  } else if (quote.sharesOutstanding && currentPrice) {
+                    marketCap = quote.sharesOutstanding * currentPrice;
+                    console.log(`[${symbol}] Calculated market cap from quote API:`, marketCap);
+                  }
                 }
               }
             }
-          } catch (fmpError) {
-            console.log(`[${symbol}] FMP market-cap API failed:`, fmpError.message);
-          }
-        }
-        
-        // Method 4: Try FMP company profile endpoint (often has market cap as mktCap)
-        if (!marketCap) {
-          try {
-            const profileUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://financialmodelingprep.com/api/v3/profile/${symbol}?apikey=YXzEgLXuiXGOswPD4DSYXgY5ykU1gNfe`)}`;
-            const profileRes = await fetch(profileUrl);
-            if (profileRes.ok) {
-              const profileWrapper = await profileRes.json();
-              if (profileWrapper.contents) {
-                const profileData = JSON.parse(profileWrapper.contents);
-                console.log(`[${symbol}] FMP Profile API response:`, profileData);
-                if (profileData && profileData.length > 0 && profileData[0].mktCap) {
-                  marketCap = profileData[0].mktCap;
-                  console.log(`[${symbol}] Found market cap from FMP profile:`, marketCap);
-                  return marketCap;
-                }
-              }
-            }
-          } catch (profileError) {
-            console.log(`[${symbol}] FMP Profile API failed:`, profileError.message);
+          } catch (quoteError) {
+            console.log(`[${symbol}] Quote API failed:`, quoteError.message);
           }
         }
         
@@ -6240,20 +7310,32 @@ Use #hashtags to organize your notes by:
         
         if (etfsWithoutMarketCap[symbol]) {
           console.log(`[${symbol}] ETF detected - market cap set to null`);
-          return null; // ETFs don't have market cap
+          marketCap = null; // ETFs don't have market cap
         } else {
           // For stocks without real market cap data, set to undefined to show "N/A"
           console.log(`[${symbol}] No market cap data available - set to undefined`);
-          return undefined;
+          marketCap = undefined;
         }
       }
+      
+      // Cache the result for 24 hours
+      marketCapCache[symbol] = {
+        value: marketCap,
+        timestamp: Date.now()
+      };
       
       return marketCap;
     }
 
-    // Fetch stock data with smart caching
-    async function fetchStockData(symbol, retry = true) {
+    // Fetch stock data with smart caching and staggered historical data fetching
+    async function fetchStockData(symbol, retry = true, staggerDelay = 0) {
       try {
+        // Apply stagger delay for historical data fetching (only when no cache exists)
+        if (staggerDelay > 0) {
+          console.log(`⏱️ Staggering historical data fetch for ${symbol} by ${staggerDelay/1000}s to reduce API pressure`);
+          await new Promise(resolve => setTimeout(resolve, staggerDelay));
+        }
+        
         // Check if we have cached historical data
         const historicalKey = `historical_${symbol}`;
         const historicalTimestampKey = `historical_${symbol}_timestamp`;
@@ -6271,6 +7353,10 @@ Use #hashtags to organize your notes by:
           historicalData = JSON.parse(cachedHistorical);
           useQuickUpdate = true;
           console.log(`Using cached historical data for ${symbol}, fetching recent updates only`);
+        } else if (!isHistoricalCacheValid && cachedTimestamp) {
+          console.log(`Historical data expired for ${symbol} (age: ${Math.round((now - parseInt(cachedTimestamp)) / (60 * 60 * 1000))} hours), fetching full historical data`);
+        } else {
+          console.log(`No historical data for ${symbol}, fetching full 200-day range`);
         }
         
         // Determine the range to fetch
@@ -6361,30 +7447,46 @@ Use #hashtags to organize your notes by:
         const price = closes[lastIdx];
         const volume = volumes[lastIdx];
         
-        // Fetch market cap data if not in historical cache or if cache is old
+        // Fetch market cap data only if not in historical cache or if doing full historical data fetch
         let marketCap = null;
         if (historicalData && historicalData.marketCap !== undefined) {
-          // Use cached market cap
+          // Use cached market cap from historical data
           marketCap = historicalData.marketCap;
-          console.log(`[${symbol}] Using cached market cap:`, marketCap);
-        } else {
-          // Fetch market cap from multiple sources
-          console.log(`[${symbol}] Fetching fresh market cap data...`);
+          console.log(`[${symbol}] Using cached market cap from historical data:`, marketCap);
+        } else if (!useQuickUpdate) {
+          // Only fetch market cap when doing full historical data fetch (not quick updates)
+          console.log(`[${symbol}] Fetching fresh market cap data for historical cache...`);
           marketCap = await fetchMarketCap(symbol, result.meta, price);
+        } else {
+          // For quick updates, if no cached market cap exists, set to undefined to show N/A
+          console.log(`[${symbol}] Quick update mode - no cached market cap, setting to undefined`);
+          marketCap = undefined;
         }
         
-        // Save/update historical cache with market cap included
+        // Save/update historical cache - preserve market cap and company name during quick updates
         const newHistoricalData = { 
           timestamps, 
           closes, 
           volumes, 
           highs, 
           lows, 
-          marketCap,
-          companyName: longName 
+          marketCap: marketCap !== undefined ? marketCap : (historicalData ? historicalData.marketCap : undefined),
+          companyName: longName || (historicalData ? historicalData.companyName : null)
         };
         localStorage.setItem(historicalKey, JSON.stringify(newHistoricalData));
         localStorage.setItem(historicalTimestampKey, now.toString());
+        
+        // Helper function to format market cap for logging
+        function humanMarketCap(cap) {
+          if (!cap || cap === 0) return '0';
+          if (cap >= 1e12) return (cap / 1e12).toFixed(2) + 'T';
+          if (cap >= 1e9) return (cap / 1e9).toFixed(2) + 'B';
+          if (cap >= 1e6) return (cap / 1e6).toFixed(2) + 'M';
+          if (cap >= 1e3) return (cap / 1e3).toFixed(2) + 'K';
+          return cap.toString();
+        }
+        
+        console.log(`[${symbol}] Historical cache updated - Market cap: ${newHistoricalData.marketCap !== undefined ? (newHistoricalData.marketCap === null ? 'null (ETF)' : humanMarketCap(newHistoricalData.marketCap)) : 'undefined (N/A)'}, Company: ${newHistoricalData.companyName || 'Unknown'}`);
         
         // Find previous trading day (not just previous data point)
         // Look for the most recent close that's from a different day
@@ -6777,9 +7879,18 @@ Use #hashtags to organize your notes by:
         };
       } catch (e) {
         console.error(`Error in fetchStockData for ${symbol}:`, e);
-        if (retry) {
-          console.log(`Retrying fetchStockData for ${symbol} in 2 seconds...`);
-          await new Promise(res => setTimeout(res, 2000));
+        
+        // Check if it's a rate limiting error
+        const isRateLimited = e.message.includes('429') || e.message.includes('Too Many Requests') || e.message.includes('ERR_FAILED');
+        
+        if (retry && isRateLimited) {
+          // Longer delay for rate limiting
+          console.log(`Rate limited - retrying fetchStockData for ${symbol} in 10 seconds...`);
+          await new Promise(res => setTimeout(res, 10000));
+          return fetchStockData(symbol, false);
+        } else if (retry) {
+          console.log(`Retrying fetchStockData for ${symbol} in 3 seconds...`);
+          await new Promise(res => setTimeout(res, 3000));
           return fetchStockData(symbol, false);
         }
         console.error(`Failed to fetch data for ${symbol} after retry`);
@@ -7141,7 +8252,10 @@ Use #hashtags to organize your notes by:
       
       console.log(`updateAllStockData called with forceFetch=${forceFetch} for ${stocks.length} stocks`);
       
-      for (const stock of stocks) {
+      let symbolsNeedingHistoricalFetch = 0;
+      
+      for (let i = 0; i < stocks.length; i++) {
+        const stock = stocks[i];
         const symbol = typeof stock === 'object' ? stock.symbol : stock;
         let stockData = null;
         let shouldFetch = forceFetch;
@@ -7163,7 +8277,22 @@ Use #hashtags to organize your notes by:
         
         // Only fetch new data if forced, cache expired, or no cache exists
         if (shouldFetch) {
-          stockData = await fetchStockData(symbol);
+          // Check if this symbol needs historical data (no cache or expired)
+          const historicalKey = `historical_${symbol}`;
+          const historicalTimestampKey = `historical_${symbol}_timestamp`;
+          const cachedTimestamp = localStorage.getItem(historicalTimestampKey);
+          const needsHistoricalData = !cachedTimestamp || 
+            (Date.now() - parseInt(cachedTimestamp)) > HISTORICAL_CACHE_DURATION;
+          
+          let staggerDelay = 0;
+          if (needsHistoricalData) {
+            // Stagger historical data fetches by 5-10 minutes (300-600 seconds)
+            staggerDelay = symbolsNeedingHistoricalFetch * (5 * 60 * 1000 + Math.random() * 5 * 60 * 1000); // 5-10 minutes
+            symbolsNeedingHistoricalFetch++;
+            console.log(`📅 ${symbol} needs historical data - will be fetched with ${Math.round(staggerDelay/60000)} minute delay`);
+          }
+          
+          stockData = await fetchStockData(symbol, true, staggerDelay);
           if (stockData) {
             // Store the fetched data in our cache
             updatedData[symbol] = stockData;
@@ -7508,7 +8637,7 @@ saveSettingsBtn.onclick = function() {
           localStorage.setItem('userEmail', email);
         } catch (error) {
           console.error('Error saving email to localStorage:', error);
-          alert('Error saving email: ' + error.message);
+          showToast('Error saving email: ' + error.message, 'error');
         }
       }
 
@@ -7570,6 +8699,15 @@ saveSettingsBtn.onclick = function() {
         localStorage.setItem('smartAlertEmailEnabled', smartAlertEmailEnabled.toString());
       }
       
+      // Save browser notification preference
+      const browserNotificationsSwitch = document.getElementById('browserNotificationsSwitch');
+      if (browserNotificationsSwitch) {
+        const browserNotificationsEnabled = browserNotificationsSwitch.checked;
+        localStorage.setItem('browserNotificationsEnabled', browserNotificationsEnabled.toString());
+        console.log('Browser notifications setting saved:', browserNotificationsEnabled);
+      }
+      
+      showToast('Settings saved successfully!', 'success');
       bootstrap.Modal.getInstance(settingsModal).hide();
     };
     // Dark mode CSS
@@ -7760,6 +8898,48 @@ saveSettingsBtn.onclick = function() {
       if (smartAlertEmailSwitch) {
         smartAlertEmailSwitch.checked = smartAlertEmailEnabled;
       }
+      
+      // Load browser notification settings
+      const browserNotificationsSwitch = document.getElementById('browserNotificationsSwitch');
+      if (browserNotificationsSwitch) {
+        const browserNotificationsEnabled = localStorage.getItem('browserNotificationsEnabled');
+        browserNotificationsSwitch.checked = browserNotificationsEnabled !== 'false'; // Default to true
+        
+        // Update notification status display
+        updateNotificationStatus();
+      }
+    }
+    
+    // Function to update notification permission status in settings
+    function updateNotificationStatus() {
+      const statusElement = document.getElementById('notificationStatus');
+      const requestBtn = document.getElementById('requestNotificationPermissionBtn');
+      
+      if (!statusElement) return;
+      
+      if (!('Notification' in window)) {
+        statusElement.textContent = 'Status: Not supported in this browser';
+        statusElement.className = 'text-muted mt-1';
+        return;
+      }
+      
+      switch (Notification.permission) {
+        case 'granted':
+          statusElement.textContent = '✅ Status: Enabled - You\'ll receive notifications';
+          statusElement.className = 'text-success mt-1';
+          if (requestBtn) requestBtn.style.display = 'none';
+          break;
+        case 'denied':
+          statusElement.textContent = '❌ Status: Blocked - Enable in browser settings';
+          statusElement.className = 'text-danger mt-1';
+          if (requestBtn) requestBtn.style.display = 'none';
+          break;
+        case 'default':
+          statusElement.textContent = '⏳ Status: Permission needed';
+          statusElement.className = 'text-warning mt-1';
+          if (requestBtn) requestBtn.style.display = 'block';
+          break;
+      }
     }
 
     // Initialize the application
@@ -7771,6 +8951,42 @@ saveSettingsBtn.onclick = function() {
       
       // Load settings from localStorage
       loadSettings();
+      
+      // Initialize notification button handlers
+      const testNotificationBtn = document.getElementById('testNotificationBtn');
+      const requestNotificationPermissionBtn = document.getElementById('requestNotificationPermissionBtn');
+      
+      if (testNotificationBtn) {
+        testNotificationBtn.addEventListener('click', function() {
+          if (window.testBrowserNotification) {
+            window.testBrowserNotification();
+            showToast('Test notification sent! Check if you received it.', 'info');
+          }
+        });
+      }
+      
+      if (requestNotificationPermissionBtn) {
+        requestNotificationPermissionBtn.addEventListener('click', function() {
+          if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+              updateNotificationStatus();
+              if (permission === 'granted') {
+                showToast('Notification permission granted! You\'ll now receive alerts across tabs.', 'success');
+              } else {
+                showToast('Notification permission denied. You can enable it in your browser settings.', 'warning');
+              }
+            });
+          }
+        });
+      }
+      
+      // Update notification status on settings modal show
+      const settingsModal = document.getElementById('settingsModal');
+      if (settingsModal) {
+        settingsModal.addEventListener('shown.bs.modal', function() {
+          updateNotificationStatus();
+        });
+      }
       
       // Initialize Smart Alert toggle functionality
       setupSmartAlertToggle();
